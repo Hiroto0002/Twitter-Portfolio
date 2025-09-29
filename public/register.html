@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>新規ユーザー登録</title>
+    <style>
+        body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; background-color: #f0f0f0; }
+        .register-container { background: white; padding: 40px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); width: 300px; }
+        h1 { color: #3498db; text-align: center; margin-bottom: 25px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input[type="text"], input[type="password"] { width: 100%; padding: 10px; margin-bottom: 20px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; background-color: #3498db; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; transition: background-color 0.3s; }
+        button:hover { background-color: #2980b9; }
+        #message { text-align: center; margin-top: 15px; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="register-container">
+        <h1>ユーザー登録</h1>
+        <form id="registerForm">
+            <label for="username">ユーザー名:</label>
+            <input type="text" id="username" name="username" required>
+
+            <label for="password">パスワード:</label>
+            <input type="password" id="password" name="password" required>
+
+            <button type="submit">登録する</button>
+        </form>
+        <div id="message"></div>
+    </div>
+
+    <script>
+        document.getElementById('registerForm').addEventListener('submit', async function(event) {
+            // フォームの標準の送信処理（ページ遷移）を停止します
+            event.preventDefault();
+
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const messageDiv = document.getElementById('message');
+            messageDiv.textContent = '登録処理中...';
+            messageDiv.style.color = '#333';
+
+            try {
+                // サーバーの /register エンドポイントにデータを送信します
+                const response = await fetch('/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    // サーバーが受け取れるJSON形式にデータを変換します
+                    body: JSON.stringify({ username, password })
+                });
+
+                const result = await response.text(); // サーバーからの応答テキストを取得
+
+                if (response.ok) {
+                    // 登録成功
+                    messageDiv.textContent = result; // "ユーザー登録が完了しました！"
+                    messageDiv.style.color = 'green';
+                    document.getElementById('registerForm').reset(); // フォームをクリア
+                } else {
+                    // 登録失敗（例：ユーザー名が重複しているなど）
+                    messageDiv.textContent = '登録失敗: ' + result;
+                    messageDiv.style.color = 'red';
+                }
+
+            } catch (error) {
+                // サーバーに接続できなかったなどのエラー
+                console.error('通信エラー:', error);
+                messageDiv.textContent = 'エラー: サーバーに接続できませんでした。';
+                messageDiv.style.color = 'red';
+            }
+        });
+    </script>
+</body>
+</html>
