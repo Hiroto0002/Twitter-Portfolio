@@ -76,6 +76,45 @@ app.listen(PORT, () => {
 });
 
 // **********************************************
-// **** ルーティングの定義 (次のステップで作成) ****
+// ****   ルーティングの定義   ****
 // **********************************************
 
+// モデルを読み込みます
+const User = require('./models/User');
+// パスワード暗号化ツールを読み込みます
+const bcrypt = require('bcryptjs');
+
+// ユーザー登録 API のエンドポイント
+// ユーザーがフォームから登録情報を POST で送信すると、この処理が実行されます。
+app.post('/register', async (req, res) => {
+    try {
+        // フォームから送られたデータ（ユーザー名とパスワード）を受け取ります
+        const { username, password } = req.body;
+
+        // 1. ユーザー名の重複チェック
+        const existingUser = await User.findOne({ username });
+        if (existingUser) {
+            return res.status(400).send('ユーザー名は既に使用されています。');
+        }
+
+        // 2. パスワードの暗号化
+        // 10は暗号化の強度（コスト）で、高いほど安全ですが処理時間は長くなります
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password, salt);
+
+        // 3. データベースに新しいユーザーを保存
+        const newUser = new User({
+            username,
+            password: hashedPassword // 暗号化されたパスワードを保存
+        });
+
+        await newUser.save();
+
+        // 成功時の応答
+        res.status(201).send('ユーザー登録が完了しました！');
+
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('サーバーエラーが発生しました。');
+    }
+});
