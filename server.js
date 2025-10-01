@@ -170,3 +170,5 @@ app.post('/login', async (req, res) => {
         res.status(500).send('サーバーエラーが発生しました。');
     }
 });
+
+　
