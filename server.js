@@ -1,3 +1,6 @@
+// .envファイルから環境変数を読み込みます
+require('dotenv').config(); 
+
 // Expressというツールを使えるように読み込みます
 const express = require('express');
 
@@ -112,6 +115,55 @@ app.post('/register', async (req, res) => {
 
         // 成功時の応答
         res.status(201).send('ユーザー登録が完了しました！');
+
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('サーバーエラーが発生しました。');
+    }
+});
+
+// ... (ユーザー登録APIのコードは省略) ...
+
+// JWTを読み込みます
+const jwt = require('jsonwebtoken');
+
+// ユーザーログイン API のエンドポイント
+app.post('/login', async (req, res) => {
+    try {
+        const { username, password } = req.body;
+
+        // 1. ユーザー名でデータベースからユーザーを探す
+        const user = await User.findOne({ username });
+        if (!user) {
+            // ユーザーが見つからない場合はエラー
+            return res.status(400).send('ユーザー名またはパスワードが間違っています。');
+        }
+
+        // 2. パスワードの照合（フォームのパスワード vs DBの暗号化されたパスワード）
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+            // パスワードが一致しない場合はエラー
+            return res.status(400).send('ユーザー名またはパスワードが間違っています。');
+        }
+
+        // 3. ログイン成功！ JWT（チケット）を作成
+        const payload = {
+            user: {
+                id: user.id // ユーザーIDをチケットに含める
+            }
+        };
+
+        // 秘密鍵を使ってチケット（トークン）を発行します
+        jwt.sign(
+            payload,
+            process.env.JWT_SECRET, // .envファイルから秘密鍵を取得
+            { expiresIn: '1h' }, // チケットの有効期限は1時間
+            (err, token) => {
+                if (err) throw err;
+                // 成功した応答として、チケット（トークン）をブラウザに返します
+                res.json({ token, message: 'ログインに成功しました！' });
+            }
+        );
 
     } catch (err) {
         console.error(err);
