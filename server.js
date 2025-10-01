@@ -200,3 +200,25 @@ app.post('/api/posts', auth, async (req, res) => {
         res.status(500).send('サーバーエラー');
     }
 });
+
+// 全投稿を取得する API のエンドポイント
+// ログインは不要なので、認証ミドルウェア (auth) は使いません。
+app.get('/api/posts', async (req, res) => {
+    try {
+        // 1. データベースからすべての投稿を取得します。
+        // .find({}) で全てのデータを探します。
+        // .populate('author', 'username') で、投稿者のID (author) から Userモデルを参照し、
+        // ユーザー名 (username) だけを取得して投稿データに含めます。
+        // .sort({ createdAt: -1 }) で、新しい投稿が一番上に来るように降順で並べ替えます。
+        const posts = await Post.find({})
+            .populate('author', 'username') 
+            .sort({ createdAt: -1 });
+        
+        // 2. 取得した投稿データを JSON 形式でブラウザに返します。
+        res.json(posts);
+
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('サーバーエラー: 投稿の取得に失敗しました。');
+    }
+});
