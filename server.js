@@ -171,4 +171,32 @@ app.post('/login', async (req, res) => {
     }
 });
 
-　
+　// ... (ログインAPIのコードは省略) ...
+
+// 認証ミドルウェアを読み込みます
+const auth = require('./middleware/auth');
+
+// ----------------------------------------------------
+// ステップ 7: 投稿機能の実装（次に行う作業）
+// ----------------------------------------------------
+
+// 投稿モデルも読み込みます
+const Post = require('./models/Post');
+
+// 投稿作成API
+// ここで auth を使うことで、「ログインしているユーザーしかアクセスできない」ようになります
+app.post('/api/posts', auth, async (req, res) => {
+    // 認証ミドルウェアが通れば、req.userにログインユーザーの情報が入っています
+    try {
+        const newPost = new Post({
+            content: req.body.content,
+            author: req.user.id // ログインユーザーのIDを投稿者として記録
+        });
+
+        const post = await newPost.save();
+        res.json(post);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('サーバーエラー');
+    }
+});
