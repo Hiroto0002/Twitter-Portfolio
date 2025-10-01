@@ -286,3 +286,38 @@ app.put('/api/posts/:postId/like', auth, async (req, res) => {
     }
 });
 
+// ユーザープロフィール取得 API のエンドポイント
+// GET /api/users/:username の形式でアクセスされます
+app.get('/api/users/:username', async (req, res) => {
+    try {
+        const profileUsername = req.params.username; // URLからユーザー名を取得
+        console.log(`[Profile API] ユーザー名を取得しました: "${profileUsername}"`);
+        
+        // 1. ユーザー名でデータベースからユーザー情報を取得
+        const user = await User.findOne({ username: profileUsername }).select('-password'); // パスワードは返さない
+        if (!user) {
+            return res.status(404).json({ msg: 'ユーザーが見つかりません。' });
+        }
+
+        // 2. そのユーザーIDに紐づく投稿を全て取得
+        const posts = await Post.find({ author: user._id })
+            .populate('author', 'username') // 投稿者名も一緒に取得
+            .sort({ createdAt: -1 });
+
+        // 3. ユーザー情報とその投稿一覧を JSON で返します
+        res.json({
+            user: {
+                id: user._id,
+                username: user.username,
+                createdAt: user.createdAt
+            },
+            posts: posts
+        });
+
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('サーバーエラー: プロフィール情報の取得に失敗しました。');
+    }
+});
+
+
