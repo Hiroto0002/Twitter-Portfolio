@@ -222,3 +222,66 @@ app.get('/api/posts', async (req, res) => {
         res.status(500).send('サーバーエラー: 投稿の取得に失敗しました。');
     }
 });
+
+// ... (投稿取得 API のコードは省略) ...
+
+// コメントモデルを読み込みます
+const Comment = require('./models/Comment');
+
+// コメント投稿 API のエンドポイント
+// POST /api/posts/:postId/comments の形式でアクセスされます
+app.post('/api/posts/:postId/comments', auth, async (req, res) => {
+    try {
+        const { content } = req.body;
+        const postId = req.params.postId; // URLから投稿IDを取得
+
+        // 投稿が存在するか確認（任意だが推奨）
+        const post = await Post.findById(postId);
+        if (!post) {
+            return res.status(404).json({ msg: '投稿が見つかりません。' });
+        }
+
+        // 新しいコメントを作成し、データベースに保存
+        const newComment = new Comment({
+            content,
+            post: postId,         // どの投稿へのコメントか
+            author: req.user.id   // ログインユーザーのID
+        });
+
+        const comment = await newComment.save();
+        
+        // 成功した応答として、作成されたコメントを返します
+        res.json(comment);
+
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('サーバーエラー: コメント投稿に失敗しました。');
+    }
+});
+
+// いいね API のエンドポイント
+// PUT /api/posts/:postId/like の形式でアクセスされます
+app.put('/api/posts/:postId/like', auth, async (req, res) => {
+    try {
+        const postId = req.params.postId;
+
+        // 投稿を探し、likesの数を1増やす
+        const post = await Post.findByIdAndUpdate(
+            postId,
+            { $inc: { likes: 1 } }, // $incは「インクリメント（1増やす）」という意味のMongoDBの演算子です
+            { new: true }           // 更新後のドキュメントを返すように指定
+        )
+        .populate('author', 'username'); // 更新後の投稿データにユーザー名も一緒に含める
+
+        if (!post) {
+            return res.status(404).json({ msg: '投稿が見つかりません。' });
+        }
+
+        // 成功した応答として、いいねが増えた投稿データを返します
+        res.json(post);
+
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('サーバーエラー: いいね処理に失敗しました。');
+    }
+});
