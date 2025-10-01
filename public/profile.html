@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="pageTitle">ユーザープロフィール</title>
+    <style>
+        body { font-family: sans-serif; background-color: #fce4ec; padding: 20px; }
+        .profile-header { max-width: 600px; margin: 0 auto 30px; padding: 20px; background: white; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); text-align: center; }
+        .profile-username { font-size: 2em; color: #e91e63; margin: 0; }
+        .profile-join-date { color: #888; font-size: 0.9em; margin-top: 5px; }
+        .post-list { max-width: 600px; margin: 0 auto; }
+        .post-card { background: white; border: 1px solid #f8bbd0; border-radius: 8px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); }
+        .post-content { margin-bottom: 10px; line-height: 1.6; }
+        .post-footer { font-size: 0.9em; color: #9e9e9e; }
+        #message { text-align: center; color: red; }
+    </style>
+</head>
+<body>
+    <div id="app">
+        </div>
+    <div id="message"></div>
+
+<nav style="margin-bottom: 20px; padding: 10px; border-bottom: 1px solid #ccc;">
+    <a href="#" id="profileLink" style="margin-right: 15px; text-decoration: none;">プロフィール</a>
+    <a href="/timeline.html" style="margin-right: 15px; text-decoration: none;">タイムライン</a>
+    <a href="/post.html" style="margin-right: 15px; text-decoration: none;">新規投稿</a>
+    <a href="/login.html" style="margin-right: 15px; text-decoration: none;">ログイン</a>
+    <a href="/register.html" style="margin-right: 15px; text-decoration: none;">登録</a>
+</nav>
+    <script>
+        async function fetchProfile() {
+            const appDiv = document.getElementById('app');
+            const messageDiv = document.getElementById('message');
+            // 🚨 URLからユーザー名を取得する方法（例: /profile.html?user=Hiro）
+            const urlParams = new URLSearchParams(window.location.search);
+            const username = urlParams.get('user'); 
+
+            if (!username) {
+                messageDiv.textContent = 'エラー: 表示するユーザー名が指定されていません。';
+                return;
+            }
+
+            document.getElementById('pageTitle').textContent = `@${username} のプロフィール`;
+
+            try {
+                // サーバーのプロフィールAPIにアクセス
+                const response = await fetch(`/api/users/${username}`); 
+                const data = await response.json(); 
+
+                if (response.ok) {
+                    messageDiv.textContent = '';
+                    const user = data.user;
+                    const posts = data.posts;
+                    const joinDate = new Date(user.createdAt).toLocaleDateString();
+
+                    let postsHtml = posts.length > 0 ? '' : '<p style="text-align: center; color: #e91e63;">まだ投稿がありません。</p>';
+                    
+                    posts.forEach(post => {
+                        postsHtml += `
+                            <div class="post-card">
+                                <p class="post-content">${post.content}</p>
+                                <div class="post-footer">
+                                    いいね: ${post.likes} | 投稿日: ${new Date(post.createdAt).toLocaleDateString()}
+                                </div>
+                            </div>
+                        `;
+                    });
+
+                    appDiv.innerHTML = `
+                        <div class="profile-header">
+                            <h2 class="profile-username">@${user.username}</h2>
+                            <p class="profile-join-date">登録日: ${joinDate}</p>
+                        </div>
+                        <h3 style="max-width: 600px; margin: 0 auto 15px; color: #e91e63;">${user.username}の投稿 (${posts.length}件)</h3>
+                        <div class="post-list">
+                            ${postsHtml}
+                        </div>
+                    `;
+
+                } else {
+                    messageDiv.textContent = `エラー: ${data.msg || 'サーバーエラー'}`;
+                }
+
+            } catch (error) {
+                console.error('通信エラー:', error);
+                messageDiv.textContent = 'エラー: サーバーに接続できませんでした。';
+            }
+        }
+
+        fetchProfile();
+
+        
+    </script>
+</body>
+</html>

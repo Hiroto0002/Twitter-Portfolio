@@ -285,3 +285,4 @@ app.put('/api/posts/:postId/like', auth, async (req, res) => {
         res.status(500).send('サーバーエラー: いいね処理に失敗しました。');
     }
 });
+

@@ -34,20 +34,33 @@
     <div class="post-list" id="postList">
         <p>投稿を読み込み中...</p>
     </div>
-    <nav style="margin-bottom: 20px; padding: 10px; border-bottom: 1px solid #ccc;">
-        <a href="/timeline.html" style="margin-right: 15px; text-decoration: none;">タイムライン</a>
-        <a href="/post.html" style="margin-right: 15px; text-decoration: none;">新規投稿</a>
-        <a href="/login.html" style="margin-right: 15px; text-decoration: none;">ログイン</a>
-        <a href="/register.html" style="margin-right: 15px; text-decoration: none;">登録</a>
-    </nav>
+    <div style="margin-bottom: 20px; padding: 10px; border-bottom: 1px solid #ccc;">
+      <a href="/timeline.html" style="margin-right: 15px; text-decoration: none;">タイムライン</a>
+      <a href="/post.html" style="margin-right: 15px; text-decoration: none;">新規投稿</a>
+    
+      <a href="#" id="profileLink" style="margin-right: 15px; text-decoration: none;">プロフィール</a>
+    
+      <div class="logout-link" style="display: inline-block;">
+        <a href="#" id="logoutButton">ログアウト</a>
+      </div>
+    </div>
     <div class="login-container"></div>
 
     <script>
         const token = localStorage.getItem('token');
+        const loggedInUsername = localStorage.getItem('username');
         const postListDiv = document.getElementById('postList');
         const messageDiv = document.getElementById('message');
 
         // ログインしていない場合は強制的にログイン画面へ
+        if (loggedInUsername) {
+            const profileLink = document.getElementById('profileLink');
+            profileLink.href = `/profile.html?user=${loggedInUsername}`;
+            profileLink.textContent = `プロフィール (@${loggedInUsername})`;
+        } else {
+            // ログインしていない場合、プロフィールリンクを非表示にするなど
+            document.getElementById('profileLink').style.display = 'none';
+        }
         if (!token) {
             messageDiv.textContent = 'ログインしてください。';
             messageDiv.style.color = 'red';

@@ -30,6 +30,7 @@
         <div id="message"></div>
     </div>
     <nav style="margin-bottom: 20px; padding: 10px; border-bottom: 1px solid #ccc;">
+        <a href="#" id="profileLink" style="margin-right: 15px; text-decoration: none;">プロフィール</a>
         <a href="/timeline.html" style="margin-right: 15px; text-decoration: none;">タイムライン</a>
         <a href="/post.html" style="margin-right: 15px; text-decoration: none;">新規投稿</a>
         <a href="/login.html" style="margin-right: 15px; text-decoration: none;">ログイン</a>
@@ -67,6 +68,7 @@
                     // 🚨 ここが重要: サーバーから受け取った「チケット」(トークン)を保存します
                     // これがユーザーがログイン状態であることを証明する鍵になります。
                     localStorage.setItem('token', result.token); 
+                    localStorage.setItem('username', username);
                     
                     // ログイン後のページにリダイレクト（次のステップで使う index.html に仮で移動）
                     setTimeout(() => {
