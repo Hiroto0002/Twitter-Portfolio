@@ -1,5 +1,5 @@
 // .envファイルから環境変数を読み込みます
-require('dotenv').config(); 
+require('dotenv').config();
 
 // Expressというツールを使えるように読み込みます
 const express = require('express');
